@@ -1,7 +1,9 @@
 import json
 import requests
 import tiktoken
+from pygtrans import Translate, Null
 
+transClient = Translate()
 
 class ChatbotError(Exception):
     """
@@ -272,6 +274,16 @@ class Chatbot:
         """
         create img
         """
+        d = transClient.detect(prompt)
+        if d.language == 'zh-CN':
+            text = transClient.translate(prompt, target='en')
+            if not isinstance(text, Null):
+                prompt = text
+        d = transClient.detect(negivate_prompt)
+        if d.language == 'zh-CN':
+            text_ne = transClient.translate(negivate_prompt, target='en')
+            if not isinstance(text_ne, Null):
+                negivate_prompt = text_ne
         times = 3
         while times > 0:
 
@@ -279,11 +291,15 @@ class Chatbot:
                 response = self.session.post(
                     url="http://192.168.10.129:7860/sdapi/v1/txt2img",
                     json={
-                        "prompt": prompt,
+                        "prompt": prompt + ", RAW photo, *subject*, (high detailed skin:1.2), 8k uhd, dslr, soft lighting, high quality, film grain, Fujifilm XT3",
+                        "negative_prompt": "(deformed iris, deformed pupils, semi-realistic, cgi, 3d, render, sketch, cartoon, drawing, anime:1.4), text, close up, cropped, out of frame, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, extra arms, extra legs, fused fingers, too many fingers, long neck" + negivate_prompt,
                         "steps": 40,
-                        "width":512,
-                        "height":512,
-                        "negative_prompt": negivate_prompt
+                        "width": 512,
+                        "height": 512,
+                        "cfg_scale": 7,
+                        "sampler": "Euler a",
+                        "sed": -1
+                        
                     },
                     timeout=timeout
                 )
