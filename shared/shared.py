@@ -89,7 +89,7 @@ DESTROY_ALL = 9999
 OTHER_REQUEST = 10000
 
 # stable_diff config
-API_URL_v21 = "stabilityai-stable-diffusion.hf.space/queue/join"
+API_URL_v21 = "192.168.10.129:7860/queue/join"
 API_URL_v15 = ""
 cache_dir = ".cache/"
 

@@ -174,8 +174,16 @@ def handle_recv_txt_msg(j):
                 (content.startswith(sdiPrivateImgKey) and not is_room) or (content.startswith(sdiGroupImgKey) and is_room)):
             content = re.sub("^" + (sdiGroupImgKey if is_room else sdiPrivateImgKey), "", content, 1).lstrip()
             prompt_list = re.split(negativePromptKey, content)
-
-            ig = ImgTask(ws, prompt_list, wx_id, room_id, is_room, "2.1")
+            if chatbot is None:
+                chatbot = Chatbot(
+                    api_config,
+                )
+                if is_room:
+                    global_dict[(wx_id, room_id)] = chatbot
+                else:
+                    global_dict[(wx_id, "")] = chatbot
+            # ig = ImgTask(ws, prompt_list, wx_id, room_id, is_room, "2.1")
+            ig = SdiImgTask(ws, prompt_list[0], "" if len(prompt_list) == 1 else prompt_list[1], chatbot, wx_id, room_id, is_room)
             img_que.put(ig)
 
         elif ((prvReplyAlways or privateChatKey in content) and not is_room) or (groupChatKey in content and is_room):

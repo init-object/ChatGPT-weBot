@@ -268,6 +268,43 @@ class Chatbot:
                     print(f"ChatGPT Exception: {e}")
                     raise ChatbotError("ChatGPT Exception", response.text, response.status_code)
 
+    def image_create_sdi(self, prompt: str, negivate_prompt: str = "", timeout: float = 120) -> str:
+        """
+        create img
+        """
+        times = 3
+        while times > 0:
+
+            try:
+                response = self.session.post(
+                    url="http://192.168.10.129:7860/sdapi/v1/txt2img",
+                    json={
+                        "prompt": prompt,
+                        "steps": 40,
+                        "width":512,
+                        "height":512,
+                        "negative_prompt": negivate_prompt
+                    },
+                    timeout=timeout
+                )
+            except Exception as e:
+                # print(f"ChatGPT Exception: {e}")
+                raise ChatbotError("ConnectionError", f'ChatGPT API error {e.__str__()}', -3)
+
+            times -= 1
+
+            if times == 0 and response.status_code != 200:
+                raise ChatbotError("ConnectionError", response.text, response.status_code)
+            else:
+                try:
+                    content = json.loads(response.content)
+                    b64_json = content["images"][0]
+                    
+                    return b64_json
+                except Exception as e:
+                    print(content)
+                    print(f"ChatGPT Exception: {e}")
+                    raise ChatbotError("ChatGPT Exception", response.text, response.status_code)
 
     def rollback_conversation(self, n: int = 1) -> None:
         """

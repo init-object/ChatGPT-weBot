@@ -117,7 +117,40 @@ class GptImgTask:
         except ChatbotError as CE:
             self.reply += CE.__str__()
             self.ws.send(send_txt_msg(text_string=self.reply.strip(), wx_id=self.room_id if self.is_room else self.wx_id))
-    
+
+class SdiImgTask:
+    def __init__(self, ws, prompt, negivate_prompt, chatbot, wx_id, room_id, is_room):
+        self.ws = ws
+        self.prompt = prompt
+        self.negivate_prompt = negivate_prompt
+        self.bot = chatbot
+        self.wx_id = wx_id
+        self.room_id = room_id
+        self.is_room = is_room
+        self.reply = ""
+
+    def play(self):
+        print("ask:" + self.prompt)
+        try:
+            image_base64 = self.bot.image_create_sdi(prompt=self.prompt, negivate_prompt=self.negivate_prompt)
+            source_str = base64.urlsafe_b64decode(image_base64)
+            filename = self.wx_id + "_" + self.room_id + "_" + getid() + ".jpg"
+            if not os.path.exists(".cache/"):
+                os.makedirs(cache_dir)
+            with open(cache_dir + filename, "wb") as file_object:
+                file_object.write(source_str)
+            file_object.close()
+
+            self.ws.send(send_pic_msg(wx_id=self.room_id if self.is_room else self.wx_id,
+                                        content=os.path.join(os.path.abspath(cache_dir), filename)))
+            time.sleep(1.0)
+            if isCached:
+                print("Image cached! Name: " + cache_dir + filename)
+            else:
+                os.remove(cache_dir + filename)
+        except ChatbotError as CE:
+            self.reply += CE.__str__()
+            self.ws.send(send_txt_msg(text_string=self.reply.strip(), wx_id=self.room_id if self.is_room else self.wx_id))
 
 class NormalTask:
     def __init__(self, ws, prompt, reply, wx_id, room_id, is_room, is_citation):
@@ -155,7 +188,7 @@ class ImgTask:
         self.times = 0
 
         if version == "2.1":
-            self.img_host = "wss://" + API_URL_v21
+            self.img_host = "ws://" + API_URL_v21
         elif version == "1.5":
             self.img_host = "wss://" + API_URL_v15
 
