@@ -278,12 +278,12 @@ class Chatbot:
         if d.language == 'zh-CN':
             text = transClient.translate(prompt, target='en')
             if not isinstance(text, Null):
-                prompt = text
+                prompt = text.translatedText
         d = transClient.detect(negivate_prompt)
         if d.language == 'zh-CN':
             text_ne = transClient.translate(negivate_prompt, target='en')
             if not isinstance(text_ne, Null):
-                negivate_prompt = text_ne
+                negivate_prompt = text_ne.translatedText
         times = 3
         while times > 0:
 
