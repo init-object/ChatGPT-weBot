@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import time
+import os
 
 from apibase.revChatGPT import configure
 
@@ -20,11 +21,16 @@ if api_config["engine"] not in [
     error = NotImplementedError("Unsupported engine {self.engine}")
     raise error
 
+if "CHATGPT_API_KEY" in os.environ:
+    api_config["api_key"] = os.environ["CHATGPT_API_KEY"]
+
 # server config
 with open(".config/server_config.json", encoding="utf-8") as f:
     config = json.load(f)
 f.close()
 server_host = config["server_host"]
+if "SERVER_HOST" in os.environ:
+    server_host = os.environ["SERVER_HOST"]
 
 # general config
 with open(".config/config.json", encoding="utf-8") as f:
