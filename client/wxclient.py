@@ -182,6 +182,7 @@ def handle_recv_txt_msg(j):
             job_content = removeScheduleTask(sche_is_room, sche_wx_id, sche_room_id)
             nm = NormalTask(ws, job_content, job_tip, wx_id, room_id, is_room, True)
             nrm_que.put(nm)
+            return
     if autoReply and ((not is_room and prvReplyMode) or (is_room and grpReplyMode)):
         if content.startswith(helpKey):
             reply = str(
@@ -193,8 +194,8 @@ def handle_recv_txt_msg(j):
                     regenerateKey + " 重新生成答案\n" + \
                     rollbackKey + " +数字n 回滚到倒数第n个问题\n" + \
                     characterKey + "更改机器人角色设定\n" + \
-                    scheduleAddKey + "新增定时任务 ep: -sa 定时任务内容 -sc */1 * * * *\n" + \
-                    scheduleDeleteKey + "删除定时任务\n" + \
+                    ((scheduleAddKey + "新增定时任务 ep: -sa 定时任务内容 -sc */1 * * * *\n") if not scheduleAdminOnly else "") + \
+                    ((scheduleDeleteKey + "删除定时任务\n") if not scheduleAdminOnly else "") + \
                     conclusionKey + "总结对话\n"
             if openAiImg:
                 reply += ((groupImgKey + " 提问群AI画图机器人(openAI)\n ") if is_room else (privateImgKey + " 提问AI画图机器人(openAI)\n"))
@@ -206,25 +207,35 @@ def handle_recv_txt_msg(j):
                     groupRefreshKey +" 刷新群聊和朋友列表\n" + \
                     groupGetKey +" 获取群聊列表\n" + \
                     friendGetKey +" 获取朋友列表\n" + \
-                    scheduleAddKey + "指定给某群或某人新增定时任务 ep: -sa 定时任务内容 -sc */1 * * * * [--wx_id|--wx_name|--group_id|--group_name]\n"
+                    scheduleAddKey + "指定给某群或某人新增定时任务 ep: -sa 定时任务内容 -sc */1 * * * * [--wx_id|--wx_name|--group_id|--group_name]\n"+ \
+                    scheduleDeleteKey + "删除指定给某群或某人的定时任务 ep: -sd [--wx_id|--wx_name|--group_id|--group_name]\n"
             nm = NormalTask(ws, content, reply, wx_id, room_id, is_room, False)
             nrm_que.put(nm)
 
         elif content.startswith(scheduleAddKey):
-            jon_reply = re.sub("^" + scheduleAddKey, "", content, 1).lstrip()
-            sche_args = re.split(scheduleCronKey, jon_reply)
             job_tip = ""
-            if len(sche_args) < 2:
-                job_tip = "请设置定时任务cron表达式 ep: " + scheduleCronKey + " */1 * * * *"
+            if scheduleAdminOnly and not is_admin_user:
+                job_tip = "定时任务是管理员限定功能 普通成员无法添加定时任务"
             else:
-                ct = ScheduleTask(ws, content, sche_args[0], wx_id, room_id, is_room, sche_args[1].strip())
-                job_tip = addScheduleTask(ct)
+                jon_reply = re.sub("^" + scheduleAddKey, "", content, 1).lstrip()
+                sche_args = re.split(scheduleCronKey, jon_reply)
+                if len(sche_args) < 2:
+                    job_tip = "请设置定时任务cron表达式 ep: " + scheduleCronKey + " */1 * * * *"
+                else:
+                    ct = ScheduleTask(ws, content, sche_args[0], wx_id, room_id, is_room, sche_args[1].strip())
+                    job_tip = addScheduleTask(ct)
             nm = NormalTask(ws, content, job_tip, wx_id, room_id, is_room, True)
             nrm_que.put(nm)
 
         elif content.startswith(scheduleDeleteKey):
-            job_content = removeScheduleTask(is_room, wx_id, room_id)
-            nm = NormalTask(ws, job_content, "任务已取消", wx_id, room_id, is_room, True)
+            job_content = content
+            job_tip = ""
+            if scheduleAdminOnly and not is_admin_user:
+                job_tip = "定时任务是管理员限定功能 普通成员无法添加定时任务"
+            else:
+                job_content = removeScheduleTask(is_room, wx_id, room_id)
+                job_tip = "任务已取消"
+            nm = NormalTask(ws, job_content, job_tip, wx_id, room_id, is_room, True)
             nrm_que.put(nm)
 
         elif content.startswith(resetChatKey):

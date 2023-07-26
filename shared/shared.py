@@ -5,6 +5,10 @@ import os
 
 from apibase.revChatGPT import configure
 
+
+def str_to_bool(str):
+    return True if str.lower() == 'true' else False
+
 # api model check
 with open(".config/api_config.json", encoding="utf-8") as f:
     api_config = json.load(f)
@@ -42,6 +46,9 @@ f.close()
 
 autoReply = config["autoReply"]
 adminUsers = config["adminUsers"]
+if "ADMIN_USER_IDS" in os.environ:
+    adminUsersEnv = os.environ["ADMIN_USER_IDS"].split(",")
+    adminUsers.extend(adminUsersEnv)
 internetKey = config["internetKey"]
 internetResult = config["internetResult"]
 
@@ -80,6 +87,9 @@ wxNameKey = config["wxNameKey"]
 groupIdKey = config["groupIdKey"]
 groupNameKey = config["groupNameKey"]
 
+scheduleAdminOnly=config["scheduleAdminOnly"]
+if "SCHEDULE_ADMIN_ONLY" in os.environ:
+    scheduleAdminOnly = str_to_bool(os.environ["SCHEDULE_ADMIN_ONLY"])
 # apibase config
 rev_config = configure()
 
@@ -117,3 +127,4 @@ cache_dir = ".cache/"
 def getid():
     id = time.strftime("%Y%m%d%H%M%S", time.localtime(time.time()))
     return id
+

@@ -2,7 +2,6 @@
   "autoReply": true,
 
   "adminUsers":[
-    "ggggfjhhqepwq1314"
   ],
 
   "internetKey": "-o",
@@ -16,9 +15,6 @@
   "prvReplyMode": true,
   "prvCitationMode": false,
   "characterKey": "-p",
-  "scheduleAddKey": "-sa",
-  "scheduleCronKey": "-sc",
-  "scheduleDeleteKey": "-sd",
   "conclusionKey": "-z",
 
   "stableDiffRly": true,
@@ -34,6 +30,11 @@
   "resetChatKey": "-rs",
   "regenerateKey": "-rg",
   "rollbackKey": "-rb",
+  
+  "scheduleAdminOnly": true,
+  "scheduleAddKey": "-sa",
+  "scheduleCronKey": "-sc",
+  "scheduleDeleteKey": "-sd",
 
   "groupRefreshKey": "-gr",
   "groupGetKey": "-gg",
