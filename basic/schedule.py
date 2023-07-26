@@ -38,11 +38,11 @@ def removeScheduleTask(is_room, wx_id, room_id):
     job_id = wx_id
     if is_room:
         job_id += room_id
-        task = scheduler_dict.get((wx_id, ""))
-        scheduler_dict.pop((wx_id, ""))
-    else:
         task = scheduler_dict.get((wx_id, room_id))
         scheduler_dict.pop((wx_id, room_id))
+    else:
+        task = scheduler_dict.get((wx_id, ""))
+        scheduler_dict.pop((wx_id, ""))
     if scheduler.get_job(job_id=job_id):
         scheduler.remove_job(job_id=job_id)
     return task.content
