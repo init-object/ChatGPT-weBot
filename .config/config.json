@@ -12,6 +12,9 @@
   "prvReplyMode": true,
   "prvCitationMode": false,
   "characterKey": "-p",
+  "scheduleAddKey": "-sa",
+  "scheduleCronKey": "-sc",
+  "scheduleDeleteKey": "-sd",
   "conclusionKey": "-z",
 
   "stableDiffRly": true,

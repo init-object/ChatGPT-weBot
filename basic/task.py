@@ -4,7 +4,7 @@ import base64
 import os.path
 import string
 import random
-
+import datetime
 import websocket
 
 from shared.shared import *
@@ -170,6 +170,19 @@ class NormalTask:
             self.reply = self.prompt + "\n- - - - - - - - - -\n" + self.reply.strip()
         self.ws.send(send_txt_msg(text_string=self.reply.strip(), wx_id=self.room_id if self.is_room else self.wx_id))
 
+class ScheduleTask:
+    def __init__(self, ws, content, reply, wx_id, room_id, is_room, cron):
+        self.ws = ws
+        self.content = content
+        self.reply = reply
+        self.wx_id = wx_id
+        self.room_id = room_id
+        self.is_room = is_room
+        self.cron = cron
+
+    def play(self):
+        print("cron:" + self.cron + " 当前时间：", datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + "发送内容:" + self.reply)
+        self.ws.send(send_txt_msg(text_string=self.reply.strip(), wx_id=self.room_id if self.is_room else self.wx_id))
 
 class ImgTask:
     def __init__(self, ws, prompt, wx_id, room_id, is_room, version):

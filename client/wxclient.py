@@ -6,6 +6,7 @@ from basic.get import *
 from basic.task import *
 from multithread.threads import *
 from apibase.ChatGPTAPI import Chatbot
+from basic.schedule import addScheduleTask, removeScheduleTask
 
 # data
 global_thread = []
@@ -101,6 +102,8 @@ def handle_recv_txt_msg(j):
                     regenerateKey + " 重新生成答案\n" + \
                     rollbackKey + " +数字n 回滚到倒数第n个问题\n" + \
                     characterKey + "更改机器人角色设定\n" + \
+                    scheduleAddKey + "新增定时任务 ep: -sa 定时任务内容 -sc */1 * * * *\n" + \
+                    scheduleDeleteKey + "删除定时任务\n" + \
                     conclusionKey + "总结对话\n"
             if openAiImg:
                 reply += ((groupImgKey + " 提问群AI画图机器人(openAI)\n ") if is_room else (privateImgKey + " 提问AI画图机器人(openAI)\n"))
@@ -108,6 +111,23 @@ def handle_recv_txt_msg(j):
                 reply += ((groupImgKey + " 提问群AI画图机器人(Stable Diffusion 仅英语)\n ") if is_room else (privateImgKey + " 提问AI画图机器人( Stable Diffusion 仅英语)\n "))
 
             nm = NormalTask(ws, content, reply, wx_id, room_id, is_room, False)
+            nrm_que.put(nm)
+
+        elif content.startswith(scheduleAddKey):
+            jon_reply = re.sub("^" + scheduleAddKey, "", content, 1).lstrip()
+            sche_args = re.split(scheduleCronKey, jon_reply)
+            job_tip = ""
+            if len(sche_args) < 2:
+                job_tip = "请设置定时任务cron表达式 ep: " + scheduleCronKey + " */1 * * * *"
+            else:
+                ct = ScheduleTask(ws, content, sche_args[0], wx_id, room_id, is_room, sche_args[1])
+                job_tip = addScheduleTask(ct)
+            nm = NormalTask(ws, content, job_tip, wx_id, room_id, is_room, True)
+            nrm_que.put(nm)
+
+        elif content.startswith(scheduleDeleteKey):
+            job_content = removeScheduleTask(is_room, wx_id, room_id)
+            nm = NormalTask(ws, job_content, "任务已取消", wx_id, room_id, is_room, True)
             nrm_que.put(nm)
 
         elif content.startswith(resetChatKey):
@@ -247,6 +267,10 @@ def on_open(ws):
 
     for i in range(0, 4):
         image_processor = Processor(img_que)
+        global_thread.append(image_processor)
+
+    for i in range(0, 2):
+        image_processor = Processor(sche_que)
         global_thread.append(image_processor)
 
 

@@ -6,6 +6,7 @@ import queue
 chat_que = queue.Queue()
 nrm_que = queue.Queue()
 img_que = queue.Queue()
+sche_que = queue.Queue()
 
 
 class Processor(threading.Thread):

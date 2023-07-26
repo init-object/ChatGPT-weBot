@@ -3,3 +3,4 @@ tiktoken==0.3.2
 OpenAIAuth==0.3.2
 websocket_client==0.59.0
 pygtrans
+apscheduler==3.10.1
