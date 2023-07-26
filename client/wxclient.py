@@ -159,6 +159,29 @@ def handle_recv_txt_msg(j):
             nm = NormalTask(ws, content, reply, wx_id, room_id, is_room, False)
             nrm_que.put(nm)
             return
+        if content.startswith(scheduleAddKey):
+            jon_reply = re.sub("^" + scheduleAddKey, "", content, 1).lstrip()
+            sche_cron_args = re.split(scheduleCronKey, jon_reply)
+            job_tip = ""
+            cron_str = ""
+            if len(sche_cron_args) < 2:
+                job_tip = "请设置定时任务cron表达式 ep: " + scheduleCronKey + " */1 * * * *"
+            else:
+                job_tip, cron_str, sche_wx_id, sche_room_id, sche_is_room = get_wx_arg(sche_cron_args[1])
+                if len(job_tip) == 0:
+                    ct = ScheduleTask(ws, content, sche_cron_args[0], sche_wx_id, sche_room_id, sche_is_room, cron_str)
+                    job_tip = addScheduleTask(ct)
+            nm = NormalTask(ws, content, job_tip, wx_id, room_id, is_room, True)
+            nrm_que.put(nm)
+            return
+        if content.startswith(scheduleDeleteKey):
+            arg_content= re.sub("^" + scheduleDeleteKey, "", content, 1).lstrip()
+            job_tip, cron_str, sche_wx_id, sche_room_id, sche_is_room = get_wx_arg(arg_content)
+            if len(job_tip) == 0:
+                job_tip = "任务取消成功"
+            job_content = removeScheduleTask(sche_is_room, sche_wx_id, sche_room_id)
+            nm = NormalTask(ws, job_content, job_tip, wx_id, room_id, is_room, True)
+            nrm_que.put(nm)
     if autoReply and ((not is_room and prvReplyMode) or (is_room and grpReplyMode)):
         if content.startswith(helpKey):
             reply = str(
@@ -182,7 +205,8 @@ def handle_recv_txt_msg(j):
                     helpKey + " 查看可用命令帮助\n"  + \
                     groupRefreshKey +" 刷新群聊和朋友列表\n" + \
                     groupGetKey +" 获取群聊列表\n" + \
-                    friendGetKey +" 获取朋友列表" 
+                    friendGetKey +" 获取朋友列表\n" + \
+                    scheduleAddKey + "指定给某群或某人新增定时任务 ep: -sa 定时任务内容 -sc */1 * * * * [--wx_id|--wx_name|--group_id|--group_name]\n"
             nm = NormalTask(ws, content, reply, wx_id, room_id, is_room, False)
             nrm_que.put(nm)
 
@@ -193,7 +217,7 @@ def handle_recv_txt_msg(j):
             if len(sche_args) < 2:
                 job_tip = "请设置定时任务cron表达式 ep: " + scheduleCronKey + " */1 * * * *"
             else:
-                ct = ScheduleTask(ws, content, sche_args[0], wx_id, room_id, is_room, sche_args[1])
+                ct = ScheduleTask(ws, content, sche_args[0], wx_id, room_id, is_room, sche_args[1].strip())
                 job_tip = addScheduleTask(ct)
             nm = NormalTask(ws, content, job_tip, wx_id, room_id, is_room, True)
             nrm_que.put(nm)
@@ -295,6 +319,49 @@ def handle_recv_txt_msg(j):
 
             ct = ChatTask(ws, content, access_internet, chatbot, wx_id, room_id, is_room, is_citation, "c")
             chat_que.put(ct)
+
+def get_wx_arg(arg_content):
+    job_tip = ""
+    sche_wx_id = ""
+    sche_room_id = ""
+    sche_is_room = False
+    if wxIdKey in arg_content:
+        sche_is_room = False
+        sche_wxId_args = re.split(wxIdKey, arg_content)
+        cron_str = sche_wxId_args[0].strip()
+        wx_id_arg = sche_wxId_args[1].strip()
+        if wx_id_arg in friend_id_dict:
+            sche_wx_id = friend_id_dict[wx_id_arg].wx_id
+        else:
+            job_tip = "朋友不存在 " + wxIdKey + ": " + wx_id_arg + "可使用 " + friendGetKey + " 获取朋友列表"
+    if wxNameKey in arg_content:
+        sche_is_room = False
+        sche_wxName_args = re.split(wxNameKey, arg_content)
+        cron_str = sche_wxName_args[0].strip()
+        wx_name_arg = sche_wxName_args[1].strip()
+        if wx_name_arg in friend_name_dict:
+            sche_wx_id = friend_name_dict[wx_name_arg].wx_id
+        else:
+            job_tip = "朋友不存在 " + wxNameKey + ": " + wx_name_arg + "可使用 " + friendGetKey + " 获取朋友列表"
+    if groupIdKey in arg_content:
+        sche_is_room = True
+        sche_groupId_args = re.split(groupIdKey, arg_content)
+        cron_str = sche_groupId_args[0].strip()
+        groupId_arg = sche_groupId_args[1].strip()
+        if groupId_arg in group_id_dict:
+            sche_room_id = group_id_dict[groupId_arg].room_id
+        else:
+            job_tip = "群聊不存在 " + groupIdKey + ": " + groupId_arg + "可使用 " + groupGetKey + " 获取群聊列表"
+    if groupNameKey in arg_content:
+        sche_is_room = True
+        sche_groupName_args = re.split(groupNameKey, arg_content)
+        cron_str = sche_groupName_args[0].strip()
+        groupName_arg = sche_groupName_args[1].strip()
+        if groupName_arg in group_name_dict:
+            sche_room_id = group_name_dict[groupName_arg].room_id
+        else:
+            job_tip = "群聊不存在 " + groupNameKey + ": " + groupName_arg + "可使用 " + groupGetKey + " 获取群聊列表"
+    return job_tip,cron_str,sche_wx_id,sche_room_id,sche_is_room
 
 
 def handle_recv_pic_msg(j):

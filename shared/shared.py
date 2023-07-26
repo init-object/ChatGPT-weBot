@@ -75,6 +75,10 @@ rollbackKey = config["rollbackKey"]
 groupRefreshKey = config["groupRefreshKey"]
 groupGetKey = config["groupGetKey"]
 friendGetKey = config["friendGetKey"]
+wxIdKey = config["wxIdKey"]
+wxNameKey = config["wxNameKey"]
+groupIdKey = config["groupIdKey"]
+groupNameKey = config["groupNameKey"]
 
 # apibase config
 rev_config = configure()
