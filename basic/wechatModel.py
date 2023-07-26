@@ -9,7 +9,7 @@ class Group:
         self.room_id = room_id
         self.room_name = room_name
     def __str__(self):
-        return "group_name: " + self.room_name + "\ngroup_id: \"" + self.room_id + "\"\n"
+        return "group_name: \"" + self.room_name + "\"\ngroup_id: \"" + self.room_id + "\"\n"
 
 class Friend:
     def __init__(self, wx_id, wx_name, wx_code):
@@ -17,4 +17,4 @@ class Friend:
         self.wx_name = wx_name
         self.wx_code = wx_code
     def __str__(self):
-        return "wx_name: " + self.wx_name + "\nwx_id: \"" + self.wx_id + "\"\n"
+        return "wx_name: \"" + self.wx_name + "\"\nwx_id: \"" + self.wx_id + "\"\n"

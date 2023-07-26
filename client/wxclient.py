@@ -80,8 +80,9 @@ def handle_wxuser_list(j):
                 group_name_dict[id] = group
                 reply = "群聊名称：{name}重复 建议使用group_id定位群聊".format(name=name)
                 print(reply)
-                if len(current_user_wx_id):
-                    nm = NormalTask(ws, None, reply, current_user_wx_id, None, False, False)
+                for user_id in adminUsers:
+                    nm = NormalTask(ws, None, reply, user_id, user_id, user_id.find("@") == -1, False)
+                    nrm_que.put(nm)
             else:
                 group_name_dict[name] = group
 
@@ -99,8 +100,9 @@ def handle_wxuser_list(j):
                 friend_name_dict[id] = friend
                 reply = "朋友名称：{name}重复 建议使用wx_id定位朋友".format(name=name)
                 print(reply)
-                if len(current_user_wx_id):
-                    nm = NormalTask(ws, None, reply, current_user_wx_id, None, False, False)
+                for user_id in adminUsers:
+                    nm = NormalTask(ws, None, reply, user_id, user_id, user_id.find("@") == -1, False)
+                    nrm_que.put(nm)
             else:
                 friend_name_dict[name] = friend
     for user_id in adminUsers:
@@ -152,7 +154,7 @@ def handle_recv_txt_msg(j):
             return
         if content.startswith(friendGetKey):
             reply = "朋友列表如下\n"
-            for value in group_id_dict.values():
+            for value in friend_id_dict.values():
                 reply += str(value) + "\n" 
             nm = NormalTask(ws, content, reply, wx_id, room_id, is_room, False)
             nrm_que.put(nm)
