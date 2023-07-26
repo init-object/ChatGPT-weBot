@@ -41,7 +41,7 @@ with open(".config/config.json", encoding="utf-8") as f:
 f.close()
 
 autoReply = config["autoReply"]
-
+adminUsers = config["adminUsers"]
 internetKey = config["internetKey"]
 internetResult = config["internetResult"]
 
@@ -71,6 +71,10 @@ helpKey = config["helpKey"]
 resetChatKey = config["resetChatKey"]
 regenerateKey = config["regenerateKey"]
 rollbackKey = config["rollbackKey"]
+
+groupRefreshKey = config["groupRefreshKey"]
+groupGetKey = config["groupGetKey"]
+friendGetKey = config["friendGetKey"]
 
 # apibase config
 rev_config = configure()

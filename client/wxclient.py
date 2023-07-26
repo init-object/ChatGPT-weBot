@@ -3,14 +3,26 @@
 import re
 
 from basic.get import *
+from basic.send import send_wxuser_list
 from basic.task import *
 from multithread.threads import *
 from apibase.ChatGPTAPI import Chatbot
 from basic.schedule import addScheduleTask, removeScheduleTask
+from basic.wechatModel import *
+
 
 # data
 global_thread = []
 
+current_user_wx_id = ""
+current_user_wx_name = ""
+
+def handle_personal_info(j):
+    print(j)
+    data = json.loads(j["content"])
+    current_user_wx_id = data["wx_id"]
+    adminUsers.append(current_user_wx_id)
+    current_user_wx_name = data["wx_name"]
 
 def debug_switch():
     qs = {
@@ -49,22 +61,53 @@ def destroy_all():
 
 def handle_wxuser_list(j):
     content = j["content"]
+    group_id_dict.clear()
+    group_name_dict.clear()
+    friend_id_dict.clear()
+    friend_name_dict.clear()
     i = 0
     # 微信群
     for item in content:
         i += 1
         id = item["wxid"]
+        name = item["name"]
         m = id.find("@")
         if m != -1:
-            print(i, "群聊", id, item["name"])
+            print(i, "群聊", id, name)
+            group = Group(id, name)
+            group_id_dict[id] = group
+            if name in group_name_dict:
+                group_name_dict[id] = group
+                reply = "群聊名称：{name}重复 建议使用group_id定位群聊".format(name=name)
+                print(reply)
+                if len(current_user_wx_id):
+                    nm = NormalTask(ws, None, reply, current_user_wx_id, None, False, False)
+            else:
+                group_name_dict[name] = group
 
     # 微信其他好友，公众号等
     for item in content:
         i += 1
         id = item["wxid"]
+        name = item["name"]
         m = id.find("@")
         if m == -1:
-            print(i, "个体", id, item["name"], item["wxcode"])
+            print(i, "个体", id, name, item["wxcode"])
+            friend = Friend(id, name, item["wxcode"])
+            friend_id_dict[i] = friend
+            if name in friend_name_dict:
+                friend_name_dict[id] = friend
+                reply = "朋友名称：{name}重复 建议使用wx_id定位朋友".format(name=name)
+                print(reply)
+                if len(current_user_wx_id):
+                    nm = NormalTask(ws, None, reply, current_user_wx_id, None, False, False)
+            else:
+                friend_name_dict[name] = friend
+    for user_id in adminUsers:
+        reply = "群聊和朋友列表刷新成功"
+        nm = NormalTask(ws, None, reply, user_id, user_id, user_id.find("@") == -1, False)
+        nrm_que.put(nm)
+            
 
 
 def handle_recv_txt_msg(j):
@@ -78,10 +121,14 @@ def handle_recv_txt_msg(j):
     is_room: bool
     chatbot: Chatbot
 
+    is_admin_user: bool = False
+
     if len(wx_id) < 9 or wx_id[-9] != "@":
         is_room = False
         wx_id: str = j["wxid"]
         chatbot = global_dict.get((wx_id, ""))
+        if wx_id in adminUsers:
+            is_admin_user = True
 
     else:
         is_room = True
@@ -91,6 +138,25 @@ def handle_recv_txt_msg(j):
 
     is_citation = (grpCitationMode and is_room) or (prvCitationMode and not is_room)
 
+    if is_admin_user:
+        if content.startswith(groupRefreshKey):
+            ws.send(send_wxuser_list())
+            reply = "刷新群聊和朋友列表"
+            return
+        if content.startswith(groupGetKey):
+            reply = "群聊列表如下\n"
+            for value in group_id_dict.values():
+                    reply += str(value) + "\n" 
+            nm = NormalTask(ws, content, reply, wx_id, room_id, is_room, False)
+            nrm_que.put(nm)
+            return
+        if content.startswith(friendGetKey):
+            reply = "朋友列表如下\n"
+            for value in group_id_dict.values():
+                reply += str(value) + "\n" 
+            nm = NormalTask(ws, content, reply, wx_id, room_id, is_room, False)
+            nrm_que.put(nm)
+            return
     if autoReply and ((not is_room and prvReplyMode) or (is_room and grpReplyMode)):
         if content.startswith(helpKey):
             reply = str(
@@ -109,7 +175,12 @@ def handle_recv_txt_msg(j):
                 reply += ((groupImgKey + " 提问群AI画图机器人(openAI)\n ") if is_room else (privateImgKey + " 提问AI画图机器人(openAI)\n"))
             if stableDiffRly:
                 reply += ((groupImgKey + " 提问群AI画图机器人(Stable Diffusion 仅英语)\n ") if is_room else (privateImgKey + " 提问AI画图机器人( Stable Diffusion 仅英语)\n "))
-
+            if is_admin_user:
+                reply += "管理员功能\n"  + \
+                    helpKey + " 查看可用命令帮助\n"  + \
+                    groupRefreshKey +" 刷新群聊和朋友列表\n" + \
+                    groupGetKey +" 获取群聊列表\n" + \
+                    friendGetKey +" 获取朋友列表" 
             nm = NormalTask(ws, content, reply, wx_id, room_id, is_room, False)
             nrm_que.put(nm)
 
@@ -250,12 +321,13 @@ def on_open(ws):
     #     print("\nChatGPT login test success!\n")
 
     # ws.send(send_pic_msg(wx_id="filehelper", room_id="", content=""))
-    # ws.send(send_wxuser_list())
+    ws.send(get_personal_info())
+    ws.send(send_wxuser_list())
     # ws.send(get_chatroom_memberlist())
 
     # ws.send(send_txt_msg("server is online", "filehelper"))
     # ws.send(send_pic_msg(wx_id="filehelper", content=os.path.join(os.path.abspath(cache_dir), "")))
-    ws.send(get_personal_info())
+    
 
     for i in range(0, 4):
         normal_processor = Processor(nrm_que)
@@ -300,7 +372,7 @@ def on_message(ws, message):
         CHATROOM_MEMBER: hanle_memberlist,
         CHATROOM_MEMBER_NICK: handle_nick,
         DEBUG_SWITCH: print,
-        PERSONAL_INFO: print,
+        PERSONAL_INFO: handle_personal_info,
         PERSONAL_DETAIL: print,
     }
 

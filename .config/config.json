@@ -1,6 +1,10 @@
 {
   "autoReply": true,
 
+  "adminUsers":[
+    "ggggfjhhqepwq1314"
+  ],
+
   "internetKey": "-o",
   "internetResult": 3,
 
@@ -29,5 +33,9 @@
   "helpKey": "-h",
   "resetChatKey": "-rs",
   "regenerateKey": "-rg",
-  "rollbackKey": "-rb"
+  "rollbackKey": "-rb",
+
+  "groupRefreshKey": "-gr",
+  "groupGetKey": "-gg",
+  "friendGetKey": "-fg"
 }
