@@ -18,7 +18,7 @@ current_user_wx_id = ""
 current_user_wx_name = ""
 
 def handle_personal_info(j):
-    print(j)
+    logging.info(j)
     data = json.loads(j["content"])
     current_user_wx_id = data["wx_id"]
     adminUsers.append(current_user_wx_id)
@@ -37,15 +37,15 @@ def debug_switch():
 
 def handle_nick(j):
     data = json.loads(j["content"])
-    print("测试群成员昵称：" + data["nick"])
+    logging.info("测试群成员昵称：" + data["nick"])
     return data["nick"]
 
 
 def hanle_memberlist(j):
     data = j["content"]
-    print(data)
+    logging.info(data)
     # for d in data:
-    #     print(d["room_id"])
+    #     logging.info(d["room_id"])
 
 
 def destroy_all():
@@ -73,13 +73,14 @@ def handle_wxuser_list(j):
         name = item["name"]
         m = id.find("@")
         if m != -1:
-            print(i, "群聊", id, name)
+            group_info = "{index}, 群聊, {id}, {name}".format(index=i, id=id, name = name)
+            logging.info(group_info)
             group = Group(id, name)
             group_id_dict[id] = group
             if name in group_name_dict:
                 group_name_dict[id] = group
                 reply = "群聊名称：{name}重复 建议使用group_id定位群聊".format(name=name)
-                print(reply)
+                logging.info(reply)
                 for user_id in adminUsers:
                     nm = NormalTask(ws, None, reply, user_id, user_id, user_id.find("@") == -1, False)
                     nrm_que.put(nm)
@@ -93,13 +94,14 @@ def handle_wxuser_list(j):
         name = item["name"]
         m = id.find("@")
         if m == -1:
-            print(i, "个体", id, name, item["wxcode"])
+            friend_info = "{index}, 个体, {id}, {name}, {wxcode}".format(index=i, id=id, name=name, wxcode=item["wxcode"])
+            logging.info(friend_info)
             friend = Friend(id, name, item["wxcode"])
             friend_id_dict[i] = friend
             if name in friend_name_dict:
                 friend_name_dict[id] = friend
                 reply = "朋友名称：{name}重复 建议使用wx_id定位朋友".format(name=name)
-                print(reply)
+                logging.info(reply)
                 for user_id in adminUsers:
                     nm = NormalTask(ws, None, reply, user_id, user_id, user_id.find("@") == -1, False)
                     nrm_que.put(nm)
@@ -113,7 +115,7 @@ def handle_wxuser_list(j):
 
 
 def handle_recv_txt_msg(j):
-    print(j)
+    logging.info(j)
 
     wx_id = j["wxid"]
     room_id = ""
@@ -376,7 +378,7 @@ def get_wx_arg(arg_content):
 
 
 def handle_recv_pic_msg(j):
-    print(j)
+    logging.info(j)
 
 
 def handle_recv_txt_cite(j):
@@ -398,7 +400,7 @@ def on_open(ws):
     # except Exception:
     #     raise Exception("Exception detected, check revChatGPT login config")
     # else:
-    #     print("\nChatGPT login test success!\n")
+    #     logging.info("\nChatGPT login test success!\n")
 
     # ws.send(send_pic_msg(wx_id="filehelper", room_id="", content=""))
     ws.send(get_personal_info())
@@ -428,7 +430,7 @@ def on_open(ws):
 
 def on_message(ws, message):
     j = json.loads(message)
-    # print(j)
+    # logging.info(j)
 
     resp_type = j["type"]
 
@@ -437,40 +439,40 @@ def on_message(ws, message):
         HEART_BEAT: handle_heartbeat,
         RECV_TXT_MSG: handle_recv_txt_msg,
         RECV_PIC_MSG: handle_recv_pic_msg,
-        NEW_FRIEND_REQUEST: print,
+        NEW_FRIEND_REQUEST: logging.info,
         RECV_TXT_CITE_MSG: handle_recv_txt_cite,
 
-        TXT_MSG: print,
-        PIC_MSG: print,
-        AT_MSG: print,
+        TXT_MSG: logging.info,
+        PIC_MSG: logging.info,
+        AT_MSG: logging.info,
 
         USER_LIST: handle_wxuser_list,
         GET_USER_LIST_SUCCESS: handle_wxuser_list,
         GET_USER_LIST_FAIL: handle_wxuser_list,
-        ATTACH_FILE: print,
+        ATTACH_FILE: logging.info,
 
         CHATROOM_MEMBER: hanle_memberlist,
         CHATROOM_MEMBER_NICK: handle_nick,
-        DEBUG_SWITCH: print,
+        DEBUG_SWITCH: logging.info,
         PERSONAL_INFO: handle_personal_info,
-        PERSONAL_DETAIL: print,
+        PERSONAL_DETAIL: logging.info,
     }
 
-    action.get(resp_type, print)(j)
+    action.get(resp_type, logging.info)(j)
 
 
 def on_error(ws, error):
-    print(ws)
-    print(error)
+    logging.info(ws)
+    logging.info(error)
 
 
 def on_close(ws):
     for key, value in global_dict.items():
-        print("clear conversation:" + key)
+        logging.info("clear conversation:" + key)
         del value
 
-    print(ws)
-    print("closed")
+    logging.info(ws)
+    logging.info("closed")
 
 
 server = "ws://" + server_host

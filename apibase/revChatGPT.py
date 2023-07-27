@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import base64
 import json
+import logging
 import time
 import uuid
 
@@ -427,7 +428,7 @@ class Chatbot:
             Error: _description_
         """
         if response.status_code != 200:
-            print(response.text)
+            logging.info(response.text)
             raise Error(
                 source="OpenAI",
                 message=response.text,
@@ -538,7 +539,7 @@ def get_input(prompt):
     """
     Multiline input function.
     """
-    print(prompt, end="")
+    logging.info(prompt)
 
     lines = []
 
@@ -564,7 +565,7 @@ def configure():
         with open(config_file, encoding="utf-8") as f:
             config = json.load(f)
     else:
-        print("No config file found.")
+        logging.info("No config file found.")
         raise Exception("No config file found.")
     return config
 
@@ -573,7 +574,7 @@ def main(config: dict):
     """
     Main function for the chatGPT program.
     """
-    print("Logging in...")
+    logging.info("Logging in...")
     chatbot = Chatbot(
         config,
         conversation_id=config.get("conversation_id"),
@@ -582,7 +583,7 @@ def main(config: dict):
 
     def handle_commands(command: str) -> bool:
         if command == "!help":
-            print(
+            logging.info(
                 """
             !help - Show this message
             !reset - Forget the current conversation
@@ -594,22 +595,22 @@ def main(config: dict):
             )
         elif command == "!reset":
             chatbot.reset_chat()
-            print("Chat session successfully reset.")
+            logging.info("Chat session successfully reset.")
         elif command == "!config":
-            print(json.dumps(chatbot.config, indent=4))
+            logging.info(json.dumps(chatbot.config, indent=4))
         elif command.startswith("!rollback"):
             try:
                 rollback = int(command.split(" ")[1])
             except IndexError:
                 rollback = 1
             chatbot.rollback_conversation(rollback)
-            print(f"Rolled back {rollback} messages.")
+            logging.info(f"Rolled back {rollback} messages.")
         elif command.startswith("!setconversation"):
             try:
                 chatbot.conversation_id = chatbot.config["conversation_id"] = command.split(" ")[1]
-                print("Conversation has been changed")
+                logging.info("Conversation has been changed")
             except IndexError:
-                print("Please include conversation UUID in command")
+                logging.info("Please include conversation UUID in command")
         elif command == "!exit":
             exit(0)
         else:
@@ -622,25 +623,25 @@ def main(config: dict):
             if handle_commands(prompt):
                 continue
 
-        print("Chatbot: ")
+        logging.info("Chatbot: ")
         prev_text = ""
         for data in chatbot.ask(
                 prompt,
         ):
             message = data["message"][len(prev_text):]
-            print(message, end="", flush=True)
+            logging.info(message)
             prev_text = data["message"]
-        print()
-        # print(message["message"])
+        logging.info()
+        # logging.info(message["message"])
 
 
 if __name__ == "__main__":
-    print(
+    logging.info(
         """
         ChatGPT - A command-line interface to OpenAI's ChatGPT (https://chat.openai.com/chat)
         Repo: github.com/acheong08/ChatGPT
         """,
     )
-    print("Type '!help' to show a full list of commands")
-    print("Press enter twice to submit your question.\n")
+    logging.info("Type '!help' to show a full list of commands")
+    logging.info("Press enter twice to submit your question.\n")
     main(configure())

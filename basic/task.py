@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import base64
+import logging
 import os.path
 import string
 import random
@@ -41,7 +42,7 @@ class ChatTask:
                 self.reply = "您还没有问过问题"
                 time.sleep(0.5)
             else:
-                print("ask:" + self.bot.prev_question[-1][-1])
+                logging.info("ask:" + self.bot.prev_question[-1][-1])
                 try:
                     self.reply += self.bot.ask(prompt=None)
                 except ChatbotError as CE:
@@ -52,7 +53,7 @@ class ChatTask:
                 self.reply = "您还没有问过问题"
                 time.sleep(0.5)
             else:
-                print("ask: 用150字内总结全部对话")
+                logging.info("ask: 用150字内总结全部对话")
                 self.reply += self.bot.conclusion()
 
         elif self.type == "p":
@@ -64,14 +65,14 @@ class ChatTask:
                 time.sleep(0.5)
 
         elif self.type == "c":
-            print("ask:" + self.prompt)
+            logging.info("ask:" + self.prompt)
             try:
                 self.reply += self.bot.ask(prompt=self.prompt, access_internet=self.access,
                                            access_result=internetResult)
             except ChatbotError as CE:
                 self.reply += CE.__str__()
 
-        print("reply: " + self.reply)
+        logging.info("reply: " + self.reply)
         if self.is_citation:
             citation = self.prompt
             if self.type == "rg":
@@ -96,7 +97,7 @@ class GptImgTask:
         self.reply = ""
 
     def play(self):
-        print("ask:" + self.prompt)
+        logging.info("ask:" + self.prompt)
         try:
             image_base64 = self.bot.image_create(prompt=self.prompt)
             source_str = base64.urlsafe_b64decode(image_base64)
@@ -111,7 +112,7 @@ class GptImgTask:
                                         content=os.path.join(os.path.abspath(cache_dir), filename)))
             time.sleep(1.0)
             if isCached:
-                print("Image cached! Name: " + cache_dir + filename)
+                logging.info("Image cached! Name: " + cache_dir + filename)
             else:
                 os.remove(cache_dir + filename)
         except ChatbotError as CE:
@@ -130,7 +131,7 @@ class SdiImgTask:
         self.reply = ""
 
     def play(self):
-        print("ask:" + self.prompt)
+        logging.info("ask:" + self.prompt)
         try:
             image_base64 = self.bot.image_create_sdi(prompt=self.prompt, negivate_prompt=self.negivate_prompt)
             source_str = base64.urlsafe_b64decode(image_base64)
@@ -145,7 +146,7 @@ class SdiImgTask:
                                         content=os.path.join(os.path.abspath(cache_dir), filename)))
             time.sleep(1.0)
             if isCached:
-                print("Image cached! Name: " + cache_dir + filename)
+                logging.info("Image cached! Name: " + cache_dir + filename)
             else:
                 os.remove(cache_dir + filename)
         except ChatbotError as CE:
@@ -164,7 +165,7 @@ class NormalTask:
 
     def play(self):
         time.sleep(0.5)
-        print("reply: " + self.reply)
+        logging.info("reply: " + self.reply)
 
         if self.is_citation:
             self.reply = self.prompt + "\n- - - - - - - - - -\n" + self.reply.strip()
@@ -181,7 +182,7 @@ class ScheduleTask:
         self.cron = cron
 
     def play(self):
-        print("cron:" + self.cron + " 当前时间：", datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + "发送内容:" + self.reply)
+        logging.info("cron:" + self.cron + " 当前时间：", datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + "发送内容:" + self.reply)
         self.ws.send(send_txt_msg(text_string=self.reply.strip(), wx_id=self.room_id if self.is_room else self.wx_id))
 
 class ImgTask:
@@ -229,7 +230,7 @@ class ImgTask:
             img_ws.send(json.dumps(process))
 
         elif msg["msg"] == "process_starts":
-            print(message)
+            logging.info(message)
 
         elif msg["msg"] == "process_completed":
             for item in msg["output"]["data"][0]:
@@ -245,15 +246,15 @@ class ImgTask:
                                           content=os.path.join(os.path.abspath(cache_dir), filename)))
                 time.sleep(1.0)
                 if isCached:
-                    print("Image cached! Name: " + cache_dir + filename)
+                    logging.info("Image cached! Name: " + cache_dir + filename)
                 else:
                     os.remove(cache_dir + filename)
 
     def on_error(self, img_ws, error):
-        print(error)
+        logging.info(error)
 
     def on_close(self, img_ws):
-        print("Stable Diffusion V" + self.version + " arts are done!")
+        logging.info("Stable Diffusion V" + self.version + " arts are done!")
 
     def play(self):
         self.img_ws = websocket.WebSocketApp(self.img_host,

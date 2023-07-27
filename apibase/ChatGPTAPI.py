@@ -1,4 +1,5 @@
 import json
+import logging
 import requests
 import tiktoken
 from pygtrans import Translate, Null
@@ -119,7 +120,7 @@ class Chatbot:
         """
         Get rest tokens to max tokens
         """
-        # print("rest token:" + str(self.max_tokens - self.get_token_count()))
+        # logging.exception("rest token:" + str(self.max_tokens - self.get_token_count()))
         return self.max_tokens - self.__get_token_count()
 
     def ask(self, prompt: str, timeout: float = 120, access_internet=False, access_result=3) -> str:
@@ -153,7 +154,7 @@ class Chatbot:
                     response = requests.get('https://ddg-webapp-aagd.vercel.app/search', headers=headers, params=params,
                                             timeout=10)
                 except Exception as e:
-                    # print(f"【ddg-webapp Exception】: {e}")
+                    # logging.exception(u"【ddg-webapp Exception】: {}".format(e))
                     raise ChatbotError("ConnectionError", "ddg-webapp API Error", -2)
 
                 if response.status_code != 200:
@@ -169,7 +170,7 @@ class Chatbot:
                         result += "URL: " + item["href"] + "\n\n"
                 except Exception as e:
                     raise ChatbotError("Json Parse Error", e.__str__(), -1)
-                    # print(f"parse json_data error: {e}")
+                    # logging.exception(u"parse json_data error: {}".format(e)
 
                 result = result.strip()
                 if result != '':
@@ -210,7 +211,7 @@ class Chatbot:
                     timeout=timeout
                 )
             except Exception as e:
-                # print(f"ChatGPT Exception: {e}")
+                # logging.exception(u"ChatGPT Exception: {}".format(e))
                 raise ChatbotError("ConnectionError", f'ChatGPT API error {e.__str__()}', -3)
 
             times -= 1
@@ -220,7 +221,7 @@ class Chatbot:
             else:
                 try:
                     content = json.loads(response.content)
-                    # print(content)
+                    # logging.info(content)
                     response_text = content["choices"][0]["message"]
                     response_role = response_text["role"]
                     assist_text = response_text["content"]
@@ -228,8 +229,8 @@ class Chatbot:
                     self.__add_to_conversation(assist_text, response_role)
                     return assist_text
                 except Exception as e:
-                    print(content)
-                    print(f"ChatGPT Exception: {e}")
+                    logging.info(content)
+                    logging.exception(u"ChatGPT Exception: {}".format(e))
                     raise ChatbotError("ConnectionError", response.text, response.status_code)
 
     def image_create(self, prompt: str, timeout: float = 120) -> str:
@@ -252,7 +253,7 @@ class Chatbot:
                     timeout=timeout
                 )
             except Exception as e:
-                # print(f"ChatGPT Exception: {e}")
+                # logging.exception(u"ChatGPT Exception: {}".format(e))
                 raise ChatbotError("ConnectionError", f'ChatGPT API error {e.__str__()}', -3)
 
             times -= 1
@@ -266,8 +267,8 @@ class Chatbot:
                     
                     return b64_json
                 except Exception as e:
-                    print(content)
-                    print(f"ChatGPT Exception: {e}")
+                    logging.info(content)
+                    logging.exception(u"ChatGPT Exception: {}".format(e))
                     raise ChatbotError("ChatGPT Exception", response.text, response.status_code)
 
     def image_create_sdi(self, prompt: str, negivate_prompt: str = "", timeout: float = 120) -> str:
@@ -304,7 +305,7 @@ class Chatbot:
                     timeout=timeout
                 )
             except Exception as e:
-                # print(f"ChatGPT Exception: {e}")
+                # logging.exception(u"ChatGPT Exception: {}".format(e))
                 raise ChatbotError("ConnectionError", f'ChatGPT API error {e.__str__()}', -3)
 
             times -= 1
@@ -318,8 +319,8 @@ class Chatbot:
                     
                     return b64_json
                 except Exception as e:
-                    print(content)
-                    print(f"ChatGPT Exception: {e}")
+                    logging.info(content)
+                    logging.exception(u"ChatGPT Exception: {}".format(e))
                     raise ChatbotError("ChatGPT Exception", response.text, response.status_code)
 
     def rollback_conversation(self, n: int = 1) -> None:
