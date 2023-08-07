@@ -1,8 +1,10 @@
+import threading
 from client.wxclient import ws
 import logging
 import logging.config
 import yaml
 from yaml.loader import SafeLoader
+from webhook.webhook import app
 import os
 
 def setup_logging(default_path='.config/logger_config.yaml', default_level=logging.INFO):
@@ -19,4 +21,8 @@ if __name__ == "__main__":
     if not os.path.exists(log_path):
         os.makedirs(log_path)
     setup_logging()
-    ws.run_forever(ping_interval=15)
+    wst = threading.Thread(target=ws.run_forever, kwargs={"ping_interval": 15})
+    wst.daemon = True
+    wst.start()
+    app.run("0.0.0.0", debug=True, port=6006)
+

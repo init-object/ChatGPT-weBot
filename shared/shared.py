@@ -90,6 +90,10 @@ groupNameKey = config["groupNameKey"]
 scheduleAdminOnly=config["scheduleAdminOnly"]
 if "SCHEDULE_ADMIN_ONLY" in os.environ:
     scheduleAdminOnly = str_to_bool(os.environ["SCHEDULE_ADMIN_ONLY"])
+
+webHooKSecret=config["webHooKSecret"]
+if "WEB_HOOK_SECRET" in os.environ:
+    webHooKSecret = os.environ["WEB_HOOK_SECRET"]
 # apibase config
 rev_config = configure()
 

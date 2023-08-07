@@ -43,6 +43,6 @@
   "wxIdKey": "--wx_id",
   "wxNameKey": "--wx_name",
   "groupIdKey": "--group_id",
-  "groupNameKey": "--group_name"
-
+  "groupNameKey": "--group_name",
+  "webHooKSecret": ""
 }
