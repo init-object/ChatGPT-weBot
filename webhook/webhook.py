@@ -85,14 +85,13 @@ def do_uptime():
                 room_id = str(form_data.get('room_id'))
                 res = ''
                 if heartbeat is not None:
-                    res += "heartbeat: " + heartbeat
+                    logging.info("heartbeat: %s", heartbeat)
                 if monitor is not None:
-                    res += "monitor: " + monitor
+                    logging.info("monitor: %s", monitor)
+                    res +=  monitor.get('name')
+                    res += "\n\n"
                 if msg is not None:
-                    if len(res) > 0 :
-                        res += "msg: " + msg
-                    else:
-                        res = msg
+                    res += msg
             elif "application/json" in content_type:
                 # request.get_data() # 原始的数据
                 input_dict = request.get_json()
@@ -103,14 +102,13 @@ def do_uptime():
                 room_id = input_dict.get('room_id')
                 res = ''
                 if heartbeat is not None:
-                    res += "heartbeat: " + heartbeat
+                    logging.info("heartbeat: %s", heartbeat)
                 if monitor is not None:
-                    res += "monitor: " + monitor
+                    logging.info("monitor: %s", monitor)
+                    res +=  monitor.get('name')
+                    res += "\n\n"
                 if msg is not None:
-                    if len(res) > 0 :
-                        res += "msg: " + msg
-                    else:
-                        res = msg
+                    res += msg
 
             elif "application/x-www-form-urlencoded" in content_type:
                 input_dict = request.form
@@ -121,14 +119,13 @@ def do_uptime():
                 room_id = input_dict.get('room_id')
                 res = ''
                 if heartbeat is not None:
-                    res += "heartbeat: " + heartbeat
+                    logging.info("heartbeat: %s", heartbeat)
                 if monitor is not None:
-                    res += "monitor: " + monitor
+                    logging.info("monitor: %s", monitor)
+                    res +=  monitor.get('name')
+                    res += "\n\n"
                 if msg is not None:
-                    if len(res) > 0 :
-                        res += "msg: " + msg
-                    else:
-                        res = msg
+                    res += msg
             else:
                 print(request.get_data())
 
