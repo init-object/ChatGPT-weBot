@@ -7,3 +7,4 @@ apscheduler==3.10.1
 pyyaml==6.0.1
 flask==2.3.2
 gevent==23.7.0
+jsonpath==0.82

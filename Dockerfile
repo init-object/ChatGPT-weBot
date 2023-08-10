@@ -1,3 +1,3 @@
-FROM initobject/chatgpt-webot-env:1.0 
+FROM initobject/chatgpt-webot-env:latest
 COPY . .
 CMD [ "python", "main.py"]

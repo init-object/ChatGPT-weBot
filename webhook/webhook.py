@@ -1,6 +1,8 @@
 import logging
+from typing import Iterable
 from flask import Flask, abort
 from flask import request
+import jsonpath
 import json
 import traceback
 
@@ -22,36 +24,32 @@ def do_webhook():
         abort(403) 
     try:
         if request.method == "POST":
+            msg_title_field = request.args.get("msg_title_field")
+            msg_content_field = request.args.get("msg_content_field")
+            if msg_title_field is None:
+                msg_title_field = 'title'
+            if msg_content_field is None:
+                msg_content_field = 'content'
             content_type = request.headers.get('Content-Type')
             if "multipart/form-data" in content_type:
                 form_data = dict(request.form)
                 # files_data = dict(request.files)
-
-                res = str(form_data.get('content'))
-                if res is None:
-                    res =  json.dumps(form_data, indent = 4, ensure_ascii= False)
-                wx_id = str(form_data.get('wx_id'))
-                room_id = str(form_data.get('room_id'))
-                
+                res, wx_id, room_id = parse_request(msg_title_field, msg_content_field, form_data)
+                res = str(res)
+                wx_id = str(wx_id)
+                room_id = str(room_id)
             elif "application/json" in content_type:
                 # request.get_data() # 原始的数据
                 input_dict = request.get_json()
-                res = input_dict.get('content')
-                if res is None:
-                    res =  json.dumps(input_dict, indent = 4, ensure_ascii= False)
-                wx_id = input_dict.get('wx_id')
-                room_id = input_dict.get('room_id')
+                res, wx_id, room_id = parse_request(msg_title_field, msg_content_field, input_dict)
 
             elif "application/x-www-form-urlencoded" in content_type:
                 input_dict = request.form
-                res = input_dict.get('content')
-                if res is None:
-                    res =  json.dumps(input_dict, indent = 4, ensure_ascii= False)
-                wx_id = input_dict.get('wx_id')
-                room_id = input_dict.get('room_id')
+                res, wx_id, room_id = parse_request(msg_title_field, msg_content_field, input_dict)
                 # request.values.get("content")
             else:
-                print(request.get_data())
+                logging.warning(request.get_data())
+                abort(500)
 
         print('url: %s , script_root: %s , path: %s , base_url: %s , url_root : %s' % (
             request.url, request.script_root, request.path, request.base_url, request.url_root))
@@ -66,8 +64,37 @@ def do_webhook():
         return json.dumps({"code": 0, "msg":"success", "data": res})
     except:
         err_msg = 'url: %s, err_msg: %s' % (request.url, (str(traceback.format_exc())))
-        print(err_msg)
+        logging.error(err_msg)
         return json.dumps({"code": -1, "msg":"failed", "data": 0})
+
+def parse_request(msg_title_field, msg_content_field, input_dict):
+    res = ''
+    try:
+        titles = jsonpath.jsonpath(input_dict, msg_title_field)
+        contents = jsonpath.jsonpath(input_dict, msg_content_field)
+        if isinstance(titles, Iterable) and isinstance(contents, Iterable) :
+            for title, content in zip(titles, contents):
+                res += "=================\n"
+                res += title
+                res += "\n"
+                res += content
+                res += "\n\n"
+    except:
+        err_msg = 'parse_request error , err_msg: %s' % (str(traceback.format_exc()))
+        logging.error(err_msg)
+        res =  json.dumps(input_dict, indent = 4, ensure_ascii= False)
+    wx_id = input_dict.get('wx_id')
+    room_id = input_dict.get('room_id')
+    if len(res) == 0:
+        title = input_dict.get(msg_title_field)
+        if title is not None:
+            res += title + "\n"
+        content = input_dict.get(msg_content_field)
+        if content is not None:
+            res += content + "\n"
+        if len(res) == 0:
+            res =  json.dumps(input_dict, indent = 4, ensure_ascii= False)
+    return res, wx_id, room_id
     
 @app.route('/uptime/webhook', methods=['POST'])
 def do_uptime():
