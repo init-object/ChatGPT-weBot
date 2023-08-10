@@ -28,6 +28,8 @@ def do_webhook():
                 # files_data = dict(request.files)
 
                 res = str(form_data.get('content'))
+                if res is None:
+                    res =  json.dumps(form_data, indent = 4, ensure_ascii= False)
                 wx_id = str(form_data.get('wx_id'))
                 room_id = str(form_data.get('room_id'))
                 
@@ -35,12 +37,16 @@ def do_webhook():
                 # request.get_data() # 原始的数据
                 input_dict = request.get_json()
                 res = input_dict.get('content')
+                if res is None:
+                    res =  json.dumps(input_dict, indent = 4, ensure_ascii= False)
                 wx_id = input_dict.get('wx_id')
                 room_id = input_dict.get('room_id')
 
             elif "application/x-www-form-urlencoded" in content_type:
                 input_dict = request.form
                 res = input_dict.get('content')
+                if res is None:
+                    res =  json.dumps(input_dict, indent = 4, ensure_ascii= False)
                 wx_id = input_dict.get('wx_id')
                 room_id = input_dict.get('room_id')
                 # request.values.get("content")
