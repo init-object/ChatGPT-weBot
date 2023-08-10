@@ -32,7 +32,6 @@ if __name__ == "__main__":
     wst.start()
     signal.signal(signal.SIGINT, handler)
     signal.signal(signal.SIGTERM, handler)
-    signal.signal(signal.SIGKILL, handler)
     signal.signal(signal.SIGHUP, handler)
 
     server = pywsgi.WSGIServer(('0.0.0.0', 6006), app)
