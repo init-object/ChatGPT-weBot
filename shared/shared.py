@@ -53,6 +53,8 @@ internetKey = config["internetKey"]
 internetResult = config["internetResult"]
 
 groupChatKey = config["groupChatKey"]
+if "GROUP_CHAT_KEY" in os.environ:
+    groupChatKey = os.environ["GROUP_CHAT_KEY"]
 grpReplyMode = config["grpReplyMode"]
 grpCitationMode = config["grpCitationMode"]
 privateChatKey = config["privateChatKey"]
