@@ -182,7 +182,7 @@ class ScheduleTask:
         self.cron = cron
 
     def play(self):
-        logging.info("cron:" + self.cron + " 当前时间：", datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + "发送内容:" + self.reply)
+        logging.info("cron:" + self.cron + " 当前时间：" + datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3] + "发送内容:" + self.reply)
         self.ws.send(send_txt_msg(text_string=self.reply.strip(), wx_id=self.room_id if self.is_room else self.wx_id))
 
 class ImgTask:
