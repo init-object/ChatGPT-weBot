@@ -16,7 +16,7 @@ app = Flask(__name__)
 
 @app.route('/webhook', methods=['POST'])
 def do_webhook():
-    logging.info("request.headers: %s", request.headers)
+    logging.info("request %s", request)
     authorization = request.headers.get('Authorization')
     if authorization is None:
         authorization = request.args.get("key")
