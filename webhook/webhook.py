@@ -16,7 +16,7 @@ app = Flask(__name__)
 
 @app.route('/webhook', methods=['POST'])
 def do_webhook():
-    logging.info("request %s", request)
+    logging.info("request.headers: %s", request.headers)
     authorization = request.headers.get('Authorization')
     if authorization is None:
         authorization = request.args.get("key")
@@ -41,6 +41,7 @@ def do_webhook():
             elif "application/json" in content_type:
                 # request.get_data() # 原始的数据
                 input_dict = request.get_json()
+                logging.info("request body: %s", input_dict)
                 res, wx_id, room_id = parse_request(msg_title_field, msg_content_field, input_dict)
 
             elif "application/x-www-form-urlencoded" in content_type:
