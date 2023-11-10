@@ -17,6 +17,7 @@ f.close()
 if api_config["engine"] not in [
     "gpt-4-1106-preview",
     "gpt-3.5-turbo",
+    "gpt-3.5-turbo-1106",
     "gpt-3.5-turbo-0301",
     "gpt-4",
     "gpt-4-0314",
