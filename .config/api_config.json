@@ -1,6 +1,6 @@
 {
   "api_key": "",
-  "engine": "gpt-4-turbo",
+  "engine": "gpt-4-1106-preview",
   "max_tokens": 3600,
   "temperature": 0.7,
   "top_p": 1.0,
