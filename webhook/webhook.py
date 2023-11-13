@@ -41,7 +41,7 @@ def do_webhook():
             elif "application/json" in content_type:
                 # request.get_data() # 原始的数据
                 input_dict = request.get_json()
-                logging.info("request body: %s", input_dict)
+                logging.info("request body: %s", json.dumps(input_dict, indent=4))
                 res, wx_id, room_id = parse_request(msg_title_field, msg_content_field, input_dict)
 
             elif "application/x-www-form-urlencoded" in content_type:
